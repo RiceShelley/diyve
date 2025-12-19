@@ -12,10 +12,10 @@ typedef struct time {
     uint8_t hour;
     uint8_t min;
     uint8_t sec;
-} time_t;
+} wall_time_t;
 
 typedef struct dive_log_entry {
-    time_t timestamp;
+    wall_time_t timestamp;
     float temperature_c;
     float depth_m; 
 } dive_log_entry_t;

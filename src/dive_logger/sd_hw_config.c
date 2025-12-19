@@ -3,25 +3,25 @@
 #include "hw_config.h"
 #include "ff.h"
 #include "diskio.h"
+#include "dive_computer_pins.h"
 
 // Hardware Configuration of SPI "objects"
-static spi_t spis[] = {  // One for each SPI.
+static spi_t spis[] = {
     {
-        .hw_inst = spi0,  // SPI component
-        .miso_gpio = 16, // GPIO number (not pin number)
-        .mosi_gpio = 19,
-        .sck_gpio = 18,
+        .hw_inst = SD_SPI_PORT,
+        .miso_gpio = SD_SPI_MISO_PIN,
+        .mosi_gpio = SD_SPI_MOSI_PIN,
+        .sck_gpio = SD_SPI_SCK_PIN,
         .baud_rate = 12500 * 1000,  
-        //.baud_rate = 25 * 1000 * 1000, // Actual frequency: 20833333. 
     }
 };
 
 // Hardware Configuration of the SD Card "objects"
-static sd_card_t sd_cards[] = {  // One for each SD card
+static sd_card_t sd_cards[] = {
     {
-        .pcName = "0:",   // Name used to mount device
-        .spi = &spis[0],  // Pointer to the SPI driving this card
-        .ss_gpio = 17,    // The SPI slave select GPIO for this SD card
+        .pcName = "0:",
+        .spi = &spis[0],
+        .ss_gpio = SD_SPI_SS_PIN,
         .use_card_detect = false
     }
 };

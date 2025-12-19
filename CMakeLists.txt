@@ -23,14 +23,6 @@ set(PICO_BOARD pico CACHE STRING "Board type")
 include(pico_sdk_import.cmake)
 include(FetchContent)
 
-# Include TM1637 library
-FetchContent_Declare(
-    tm1637_lib
-    GIT_REPOSITORY https://github.com/wahlencraft/TM1637-pico.git
-    GIT_TAG bdbc656c208af51d26314ba4ded2ec46e2cc2933
-)
-FetchContent_MakeAvailable(tm1637_lib)
-
 # SD Card / FATFS library
 FetchContent_Declare(
     sd_lib
@@ -52,14 +44,11 @@ project(dive_computer C CXX ASM)
 # Initialise the Raspberry Pi Pico SDK
 pico_sdk_init()
 
-# Include TM1637 library CMake configuration
-include(${tm1637_lib_SOURCE_DIR}/PicoTM1637.cmake)
-
 # Add FatFs_SPI library
 add_subdirectory(${sd_lib_SOURCE_DIR}/FatFs_SPI ${CMAKE_BINARY_DIR}/fatfs_build)
 
 # Add DS3231 library
-add_subdirectory(${ds3231_lib_SOURCE_DIR}/lib ${CMAKE_BINARY_DIR}/ds323)
+add_subdirectory(${ds3231_lib_SOURCE_DIR}/lib ${CMAKE_BINARY_DIR}/ds323_build)
 
 # Add executable
 add_executable(${PROJECT_NAME}
@@ -67,21 +56,34 @@ add_executable(${PROJECT_NAME}
     src/ms5803_i2c/ms5803_i2c.c
     src/dive_logger/sd_hw_config.c
     src/dive_logger/dive_logger.c
+    src/epd_waveshare_1in54/DEV_Config.c
+    src/epd_waveshare_1in54/EPD_1in54_V2.c
+    src/epd_waveshare_1in54/GUI/GUI_BMPfile.c
+    src/epd_waveshare_1in54/GUI/GUI_Paint.c
+    src/epd_waveshare_1in54/Fonts/font8.c
+    src/epd_waveshare_1in54/Fonts/font12.c
+    src/epd_waveshare_1in54/Fonts/font16.c
+    src/epd_waveshare_1in54/Fonts/font20.c
+    src/epd_waveshare_1in54/Fonts/font24.c
+    src/epd_waveshare_1in54/dive_display.c
 )
+
+include_directories(src/include)
+include_directories(src/ms5803/include)
+include_directories(src/dive_logger/include)
+include_directories(src/epd_waveshare_1in54/include)
+include_directories(src/epd_waveshare_1in54/GUI/include)
+include_directories(src/epd_waveshare_1in54/Fonts/include)
 
 # Add include directories
 target_include_directories(${PROJECT_NAME} PRIVATE
-    src/ms5803/include
-    src/dive_logger/include
     include/
-    ${tm1637_lib_SOURCE_DIR}/src
 )
 
 # Pull in common dependencies
 target_link_libraries(${PROJECT_NAME}
     pico_stdlib
     hardware_i2c
-    PicoTM1637
     FatFs_SPI
     pico-ds3231
 )
@@ -89,8 +91,8 @@ target_link_libraries(${PROJECT_NAME}
 # create map/bin/hex file etc.
 pico_add_extra_outputs(${PROJECT_NAME})
 
-pico_enable_stdio_usb(${PROJECT_NAME} 1)
-pico_enable_stdio_uart(${PROJECT_NAME} 0)
+pico_enable_stdio_usb(${PROJECT_NAME} 0)
+pico_enable_stdio_uart(${PROJECT_NAME} 1)
 
 
 # Add OpenOCD based pico program target

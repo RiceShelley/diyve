@@ -1,6 +1,7 @@
 #include "include/ms5803_i2c.h"
 #include "pico/stdlib.h"
 #include "hardware/i2c.h"
+#include "dive_computer_pins.h"
 #include <stdint.h>
 
 struct ms5803_inst {
@@ -15,21 +16,13 @@ struct ms5803_inst {
 static ms5803_inst_t ms5803_state;
 
 ms5803_inst_t* ms5803_init(precision p) {
-    #if !defined(i2c_default) || !defined(PICO_DEFAULT_I2C_SDA_PIN) || !defined(PICO_DEFAULT_I2C_SCL_PIN)
-        #warning i2c/bus_scan example requires a board with I2C pins
-        puts("Default I2C pins were not defined");
-    #else
-        // This example will use I2C0 on the default SDA and SCL pins (GP4, GP5 on a Pico)
-        i2c_init(i2c_default, 10 * 1000);
-        //gpio_set_function(14, GPIO_FUNC_I2C);
-        //gpio_set_function(15, GPIO_FUNC_I2C);
-        //gpio_pull_up(14);
-        //gpio_pull_up(15);
-        gpio_set_function(PICO_DEFAULT_I2C_SDA_PIN, GPIO_FUNC_I2C);
-        gpio_set_function(PICO_DEFAULT_I2C_SCL_PIN, GPIO_FUNC_I2C);
-        gpio_pull_up(PICO_DEFAULT_I2C_SDA_PIN);
-        gpio_pull_up(PICO_DEFAULT_I2C_SCL_PIN);
-    #endif
+
+    i2c_init(MS5803_I2C_PORT, 10 * 1000);
+
+    gpio_set_function(MS5803_I2C_SDA_PIN, GPIO_FUNC_I2C);
+    gpio_set_function(MS5803_I2C_SCL_PIN, GPIO_FUNC_I2C);
+    gpio_pull_up(MS5803_I2C_SDA_PIN);
+    gpio_pull_up(MS5803_I2C_SCL_PIN);
 
     // Set precision
     ms5803_state.p = p;
@@ -42,8 +35,8 @@ ms5803_inst_t* ms5803_init(precision p) {
     int ret;
     for (i = 0; i < 8; i++) {
         txdata = CMD_PROM + i * 2;
-        ret = i2c_write_blocking(i2c_default, MS5803_I2C_ADDR, &txdata, 1, false);
-        ret = i2c_read_blocking(i2c_default, MS5803_I2C_ADDR, &coef_buff[0], 2, false);
+        ret = i2c_write_blocking(MS5803_I2C_PORT, MS5803_I2C_ADDR, &txdata, 1, false);
+        ret = i2c_read_blocking(MS5803_I2C_PORT, MS5803_I2C_ADDR, &coef_buff[0], 2, false);
         ms5803_state.coefficient[i] = ((uint16_t) coef_buff[0] << 8) | ((uint16_t) coef_buff[1]);
     }
 
@@ -58,17 +51,17 @@ uint32_t getADCconversion(measurement m, precision p) {
 
     // SEND ADC Conversion CMD
     txdata = CMD_ADC_CONV | m | p;
-    ret = i2c_write_blocking(i2c_default, MS5803_I2C_ADDR, &txdata, 1, false);
+    ret = i2c_write_blocking(MS5803_I2C_PORT, MS5803_I2C_ADDR, &txdata, 1, false);
 
     // Wait for Conversion to complete
     sleep_ms(MS5803_CONV_DELAY_MS);
 
     // Send ADC read CMD
     txdata = CMD_ADC_READ;
-    ret = i2c_write_blocking(i2c_default, MS5803_I2C_ADDR, &txdata, 1, false);
+    ret = i2c_write_blocking(MS5803_I2C_PORT, MS5803_I2C_ADDR, &txdata, 1, false);
 
     // Read result
-    ret = i2c_read_blocking(i2c_default, MS5803_I2C_ADDR, rxdata, 3, false);
+    ret = i2c_read_blocking(MS5803_I2C_PORT, MS5803_I2C_ADDR, rxdata, 3, false);
 
     result = ((uint32_t) rxdata[0] << 16) | ((uint32_t) rxdata[1] << 8) | ((uint32_t) rxdata[2]);
 
@@ -151,11 +144,8 @@ float ms5803_get_temp(ms5803_inst_t *inst, temperature_units units) {
 		return temperature_reported;
 	}
 }
-
-float ms5803_get_pressure(ms5803_inst_t *inst) {
-    // Return a pressure reading units mbar.
-	float pressure_reported;
-	pressure_reported = inst->pressure_raw;
-	pressure_reported = pressure_reported / 10;
-	return pressure_reported;
+#include <stdio.h>
+uint32_t ms5803_get_pressure(ms5803_inst_t *inst) {
+    // Return a pressure reading in pascals
+	return inst->pressure_raw * 10;
 }

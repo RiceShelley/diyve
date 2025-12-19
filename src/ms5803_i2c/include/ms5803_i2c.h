@@ -1,6 +1,8 @@
 #ifndef MS5803_I2C__H
 #define MS5803_I2C__H
 
+#include "stdint.h"
+
 // MS5803 I2C ADDR
 #define MS5803_I2C_ADDR 0x76
 #define MS5803_CONV_DELAY_MS 100
@@ -38,6 +40,6 @@ typedef struct ms5803_inst ms5803_inst_t;
 ms5803_inst_t* ms5803_init(precision p);
 void ms5803_update(ms5803_inst_t *inst);
 float ms5803_get_temp(ms5803_inst_t *inst, temperature_units units);
-float ms5803_get_pressure(ms5803_inst_t *inst);
+uint32_t ms5803_get_pressure(ms5803_inst_t *inst);
 
 #endif
