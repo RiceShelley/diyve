@@ -36,16 +36,35 @@ float calc_depth_in_m(uint32_t pa, float water_density_kg_m3) {
     return ((float) gauge_pressure_pa) / (water_density_kg_m3 * 9.81f);
 }
 
+bool top_button_pressed() {
+    return (gpio_get(TOP_BUTTON_PIN) == 0);
+}
+
+bool side_button_pressed() {
+    return (gpio_get(SIDE_BUTTON_PIN) == 0);
+}
+
 int main() {
     stdio_init_all();
 
-    printf("setup ran!\n");
+    // Setup Buttons
+    gpio_init(TOP_BUTTON_PIN);
+    gpio_set_dir(TOP_BUTTON_PIN, GPIO_IN);
+    gpio_pull_up(TOP_BUTTON_PIN);
+
+    gpio_init(SIDE_BUTTON_PIN);
+    gpio_set_dir(SIDE_BUTTON_PIN, GPIO_IN);
+    gpio_pull_up(SIDE_BUTTON_PIN);
+
+    //sleep_ms(1000);
+    //while(!side_button_pressed()) {}
+    //printf("side pressed\n");
+
+    //while(!top_button_pressed()) {}
+    //printf("top pressed\n");
 
     int rc = pico_led_init();
     hard_assert(rc == PICO_OK);
-
-    // Initialize MS5803 sensor (Used to get pressure and temperature)
-    ms5803_inst_t* ms_inst = ms5803_init(ADC_4096);
 
     struct ds3231_rtc rtc;
 
@@ -67,8 +86,10 @@ int main() {
         .dotw = 4
     };
 
-    //ds3231_set_datetime(&dt, &rtc);
+    ds3231_set_datetime(&dt, &rtc);
 
+    // Initialize MS5803 sensor (Used to get pressure and temperature)
+    ms5803_inst_t* ms_inst = ms5803_init(ADC_4096);
 
     // Initialize dive log entry
     init_display();
