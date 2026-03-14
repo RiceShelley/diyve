@@ -1,0 +1,5 @@
+build
+!.vscode/*
+.venv
+test_data/*
+part_links.txt
