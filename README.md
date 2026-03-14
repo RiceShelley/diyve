@@ -1,8 +1,8 @@
-# diyve
+# DIYVE
 
-An open-source DIY dive computer built on a RP2040.
+Diyve is an open source DIY dive computer built on a RP2040. Learn more at [diyve.org](https://diyve.org).
 
-## Warning
+## WARNING
 
 Experimental project not intended as a primary or sole dive computer.
 
