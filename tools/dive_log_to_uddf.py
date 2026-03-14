@@ -40,7 +40,9 @@ def read_dive_log(file_path):
             while chunk := f.read(entry_size):
                 if len(chunk) == entry_size:
                     data = struct.unpack(entry_format, chunk)
-                    entries.append(dive_log_entry(*data))
+                    entry = dive_log_entry(*data)
+                    print(f"Read entry: {entry}")
+                    entries.append(entry)
     except FileNotFoundError:
         print(f"Error: Input file '{file_path}' not found.")
         sys.exit(1)
@@ -53,7 +55,11 @@ def write_to_uddf(entries, output_file):
         print("No entries found in the binary file to convert.")
         return
 
-    uddf_doc = ET.Element("uddf", version="3.2.0")
+    uddf_doc = ET.Element(
+        "uddf",
+        xmlns="http://www.streit.cc/uddf/3.2/",
+        version="3.2.0",
+    )
 
     # Generator Section
     generator = ET.SubElement(uddf_doc, "generator")
@@ -93,9 +99,8 @@ def write_to_uddf(entries, output_file):
 
         ET.SubElement(waypoint, "divetime").text = f"{divetime_sec:.0f}"
         ET.SubElement(waypoint, "depth").text = f"{entry.depth_m:.2f}"
-        ET.SubElement(waypoint, "temperature").text = (
-            f"{entry.temperature_c:.2f}"
-        )
+        temp_kelvin = entry.temperature_c + 273.15
+        ET.SubElement(waypoint, "temperature").text = f"{temp_kelvin:.2f}"
 
         if entry.depth_m > max_depth:
             max_depth = entry.depth_m
@@ -105,7 +110,7 @@ def write_to_uddf(entries, output_file):
     # Post-dive summary
     info_after = ET.SubElement(dive, "informationafterdive")
     ET.SubElement(info_after, "greatestdepth").text = f"{max_depth:.2f}"
-    ET.SubElement(info_after, "lowesttemperature").text = f"{min_temp:.2f}"
+    ET.SubElement(info_after, "lowesttemperature").text = f"{min_temp + 273.15:.2f}"
     ET.SubElement(info_after, "diveduration").text = (
         f"{(entries[-1].dt - start_time).total_seconds():.0f}"
     )
@@ -113,7 +118,7 @@ def write_to_uddf(entries, output_file):
     # Export to XML
     tree = ET.ElementTree(uddf_doc)
     ET.indent(tree, "  ")
-    tree.write(output_file, encoding="utf-8", xml_declaration=False)
+    tree.write(output_file, encoding="utf-8", xml_declaration=True)
     print(f"Successfully converted {len(entries)} entries to {output_file}")
 
 

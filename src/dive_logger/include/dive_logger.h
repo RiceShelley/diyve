@@ -17,10 +17,10 @@ typedef struct time {
 typedef struct dive_log_entry {
     wall_time_t timestamp;
     float temperature_c;
-    float depth_m; 
+    float depth_m;
 } dive_log_entry_t;
 
-int dive_logger_start();
+int dive_logger_start(const char* log_filename);
 int dive_logger_record(dive_log_entry_t* entry);
 int dive_logger_stop();
 

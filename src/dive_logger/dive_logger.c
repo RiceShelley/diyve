@@ -4,12 +4,13 @@
 #include "pico/stdlib.h"
 #include "rtc.h"
 #include "hw_config.h"
+#include <stdio.h>
 #include <string.h>
 #include <stdint.h>
 
 struct dive_log_inst {
     const char* log_filename;
-    sd_card_t *pSD;
+    sd_card_t* pSD;
     FIL fil;
 };
 
@@ -18,21 +19,20 @@ static uint8_t dive_log_entry_buff[sizeof(dive_log_entry_t)];
 static dive_log_inst_t dl_state;
 
 int dive_logger_start(const char* log_filename) {
-
     dl_state.log_filename = log_filename;
     dl_state.pSD = sd_get_by_num(0);
 
     // Mount SD Card
     FRESULT fr = f_mount(&dl_state.pSD->fatfs, dl_state.pSD->pcName, 1);
     if (FR_OK != fr) {
-        panic("f_mount error: %s (%d)\n", FRESULT_str(fr), fr);
+        printf("f_mount error: %s (%d)\n", FRESULT_str(fr), fr);
         return 1;
     }
 
     // Open log file
     fr = f_open(&dl_state.fil, dl_state.log_filename, FA_OPEN_APPEND | FA_WRITE);
     if (FR_OK != fr && FR_EXIST != fr) {
-        panic("f_open(%s) error: %s (%d)\n", dl_state.log_filename, FRESULT_str(fr), fr);
+        printf("f_open(%s) error: %s (%d)\n", dl_state.log_filename, FRESULT_str(fr), fr);
         return 1;
     }
 
@@ -92,11 +92,11 @@ int dive_logger_record(dive_log_entry_t* entry) {
 
     entry_size = pack_dive_log_entry(entry, dive_log_entry_buff);
 
-    if (f_write(&dl_state.fil, dive_log_entry_buff, entry_size, &bw) < 0) {
+    if (f_write(&dl_state.fil, dive_log_entry_buff, entry_size, &bw) != FR_OK) {
         return 1;
     }
 
-    if ((entry_size - bw) != 0) {
+    if (bw != entry_size) {
         return 1;
     }
 

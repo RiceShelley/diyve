@@ -28,7 +28,7 @@
 #
 ******************************************************************************/
 #include "DEV_Config.h"
-#include "dive_computer_pins.h"
+#include "diyve_pins.h"
 
 /**
  * GPIO read and write

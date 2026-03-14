@@ -1,8 +1,7 @@
-#ifndef DIVE_COMPUTER_PINS__H
-#define DIVE_COMPUTER_PINS__H
+#ifndef DIYVE_PINS__H
+#define DIYVE_PINS__H
 
 #include "hardware/i2c.h"
-
 
 #define DS3231_I2C_PORT i2c0
 #define DS3231_I2C_SCL_PIN PICO_DEFAULT_I2C_SCL_PIN

@@ -29,7 +29,7 @@
 ******************************************************************************/
 #include "EPD_1in54_V2.h"
 #include "Debug.h"
-#include "dive_computer_pins.h"
+#include "diyve_pins.h"
 
 // waveform full refresh
 unsigned char WF_Full_1IN54[159] =
